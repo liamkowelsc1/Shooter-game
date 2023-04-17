@@ -1,0 +1,114 @@
+javascript:(function() {
+  // create shooter
+  const shooter = document.createElement('div');
+  shooter.style.width = '0';
+  shooter.style.height = '0';
+  shooter.style.borderLeft = '15px solid transparent';
+  shooter.style.borderRight = '15px solid transparent';
+  shooter.style.borderBottom = '30px solid white';
+  shooter.style.position = 'absolute';
+  shooter.style.top = '90%';
+  shooter.style.left = '50%';
+  shooter.style.transform = 'translate(-50%, -50%)';
+  document.body.appendChild(shooter);
+  
+  // create squares
+  const squares = [];
+  for (let i = 0; i < 10; i++) {
+    const square = document.createElement('div');
+    square.style.width = '30px';
+    square.style.height = '30px';
+    square.style.backgroundColor = 'red';
+    square.style.position = 'absolute';
+    square.style.top = `${Math.floor(Math.random() * 70) + 10}%`;
+    square.style.left = `${Math.floor(Math.random() * 80) + 10}%`;
+    document.body.appendChild(square);
+    squares.push(square);
+  }
+  
+  // movement controls
+  const speed = 10;
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight * 0.9;
+  let dx = 0;
+  let dy = 0;
+  document.addEventListener('keydown', function(e) {
+    switch(e.keyCode) {
+      case 37:
+      case 65:
+        dx = -speed;
+        break;
+      case 38:
+      case 87:
+        dy = -speed;
+        break;
+      case 39:
+      case 68:
+        dx = speed;
+        break;
+      case 40:
+      case 83:
+        dy = speed;
+        break;
+      case 32:
+        // shoot bullet
+        const bullet = document.createElement('div');
+        bullet.style.width = '10px';
+        bullet.style.height = '10px';
+        bullet.style.backgroundColor = 'white';
+        bullet.style.position = 'absolute';
+        bullet.style.top = `${y - 15}px`;
+        bullet.style.left = `${x}px`;
+        document.body.appendChild(bullet);
+        // move bullet
+        const interval = setInterval(function() {
+          bullet.style.top = `${parseFloat(bullet.style.top) - speed}px`;
+          // check for collision
+          squares.forEach(function(square) {
+            if (checkCollision(bullet, square)) {
+              square.remove();
+              bullet.remove();
+              clearInterval(interval);
+            }
+          });
+          // remove bullet when it goes off screen
+          if (parseFloat(bullet.style.top) < 0) {
+            bullet.remove();
+            clearInterval(interval);
+          }
+        }, 50);
+        break;
+      case 27:
+        // remove all elements
+        shooter.remove();
+        squares.forEach(function(square) {
+          square.remove();
+        });
+        document.removeEventListener('keydown');
+        break;
+    }
+  });
+  
+  // move shooter
+  setInterval(function() {
+    x += dx;
+    y += dy;
+    if (x < 0) {
+      x = 0;
+    }
+    if (x > window.innerWidth) {
+      x = window.innerWidth;
+    }
+    if (y < 0) {
+      y = 0;
+    }
+    if (y > window.innerHeight) {
+      y = window.innerHeight;
+    }
+    shooter.style.top = `${y}px`;
+    shooter.style.left = `${x}px`;
+  }, 50);
+  
+  // check for collision between two elements
+  function checkCollision(elem1, elem2) {
+    const rect1 = elem1.getBoundingClientRect();
